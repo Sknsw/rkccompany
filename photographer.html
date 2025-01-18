@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel del Fotógrafo Profesional</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+  import { 
+    getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, updateDoc, serverTimestamp, query, orderBy 
+  } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore.js";
+  import { 
+    getStorage, ref, uploadBytes, getDownloadURL 
+  } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-storage.js";
+  import { 
+    getAuth, onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+    authDomain: "scortsprincess.firebaseapp.com",
+    projectId: "scortsprincess",
+    storageBucket: "scortsprincess.appspot.com",
+    messagingSenderId: "599517218900",
+    appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  const auth = getAuth(app);
+
+  // Función para agregar la marca de agua a la URL
+  const addWatermark = (fileUrl) => {
+    return `${fileUrl}?watermark=EpicStock`; // Agrega la marca de agua
+  };
+
+  // Función para subir archivos
+// Función para subir archivos
+// Función para subir archivos
+document.getElementById('upload-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const files = document.getElementById('file-input').files;
+  const uploadStatus = document.getElementById('upload-status');
+  const title = document.getElementById('title').value; // Título del archivo
+  const description = document.getElementById('description').value; // Descripción del archivo
+  const keywords = document.getElementById('keywords').value.split(','); // Palabras clave
+
+  // Obtén la categoría seleccionada
+  const selectedCategory = document.querySelector('input[name="category-C"]:checked').value;
+
+  onAuthStateChanged(auth, async (currentUser) => {
+    if (!currentUser) {
+      alert('Por favor, inicia sesión para subir archivos.');
+      return;
+    }
+
+    if (files.length === 0) {
+      uploadStatus.innerText = "Selecciona al menos un archivo.";
+      return;
+    }
+
+    if (files.length > 10) {
+      uploadStatus.innerText = "Solo puedes subir un máximo de 10 archivos.";
+      return;
+    }
+
+    uploadStatus.innerText = "Subiendo...";
+
+    // Obtener el documento del usuario para obtener requiresApproval
+    const userDocRef = doc(db, "users", currentUser.uid); // Documento del usuario actual
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const requiresApproval = userData.requiresApproval; // Obtenemos el valor de requiresApproval
+
+      // Define la colección de destino según 'requiresApproval'
+      let targetCollection;
+
+      if (requiresApproval) {
+        // Si requiresApproval es true, se guarda en la colección pendingUploads
+        targetCollection = 'pendingUploads';
+      } else {
+        // Si requiresApproval es false, se guarda en la colección correspondiente a la categoría seleccionada
+        targetCollection = selectedCategory; // "Videos", "imagenes", "ilustraciones", "vectores"
+      }
+
+      for (const file of files) {
+        try {
+          const fileRef = ref(storage, `uploads/${currentUser.uid}/${file.name}`);
+          await uploadBytes(fileRef, file);
+          const fileUrl = await getDownloadURL(fileRef);
+
+          // Generar ambas URLs con y sin marca de agua
+          const fileUrlWithWatermark = addWatermark(fileUrl); // URL con marca de agua
+          const fileUrlWithoutWatermark = fileUrl; // URL sin marca de agua
+
+          // Guardar en Firestore en la colección correspondiente
+          await setDoc(doc(db, targetCollection, `${currentUser.uid}-${file.name}`), {
+            userId: currentUser.uid,
+            fileName: title || file.name, // Título personalizado o nombre del archivo
+            fileUrlWithWatermark,
+            fileUrlWithoutWatermark,
+            category: selectedCategory,
+            type: file.type.includes("image") ? "imagen" : "video", // Determinar el tipo de archivo (imagen o video)
+            description, // Descripción del archivo
+            keywords, // Palabras clave
+            uploadedAt: serverTimestamp(),
+            requiresApproval,
+            status: requiresApproval ? "Pendiente" : "Aprobado", // Cambiar el estado según la aprobación
+          });
+
+          console.log("Archivo subido con éxito:", file.name);
+        } catch (error) {
+          console.error('Error al subir el archivo:', error);
+          uploadStatus.innerText = "Hubo un error al subir uno de los archivos. Ver consola para más detalles.";
+          return;
+        }
+      }
+
+      uploadStatus.innerText = "Archivos subidos con éxito.";
+      fetchUploadedMedia(); // Actualiza la vista de archivos subidos
+    } else {
+      console.error("El documento del usuario no existe.");
+    }
+  });
+});
+  // Función para mostrar contenido subido
+  async function fetchUploadedMedia() {
+    const uploadedMediaContainer = document.getElementById('uploaded-media-container');
+    uploadedMediaContainer.innerHTML = ""; // Limpiar el contenedor antes de mostrar los archivos
+
+    const querySnapshot = await getDocs(collection(db, "pendingUploads"));
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+
+      // Crear un contenedor para mostrar la información del archivo
+      const mediaDiv = document.createElement('div');
+      mediaDiv.classList.add('uploaded-media');
+
+      // Crear los elementos de información
+      const fileName = document.createElement('p');
+      fileName.innerText = `Archivo: ${data.fileName}`;
+
+      const fileStatus = document.createElement('p');
+      fileStatus.innerText = `Estado: ${data.status}`;
+
+      const fileCategory = document.createElement('p');
+      fileCategory.innerText = `Categoría: ${data.category}`;
+
+      const fileUrl = document.createElement('a');
+      fileUrl.href = data.fileUrl; // Aquí se muestra la URL sin marca de agua
+      fileUrl.innerText = "Ver archivo";
+      fileUrl.target = "_blank"; // Abrir el archivo en una nueva pestaña
+
+      // Crear el enlace para la descarga con marca de agua
+      const watermarkUrl = document.createElement('a');
+      watermarkUrl.href = data.fileUrlWithWatermark;
+      watermarkUrl.innerText = "Descargar con marca de agua";
+      watermarkUrl.target = "_blank"; // Abrir en una nueva pestaña
+
+      // Agregar los elementos al contenedor
+      mediaDiv.appendChild(fileName);
+      mediaDiv.appendChild(fileStatus);
+      mediaDiv.appendChild(fileCategory);
+      mediaDiv.appendChild(fileUrl);
+      mediaDiv.appendChild(watermarkUrl);
+
+      // Agregar el contenedor del archivo a la interfaz
+      uploadedMediaContainer.appendChild(mediaDiv);
+    });
+  }
+
+  // Función para cargar estadísticas
+  function loadStatistics() {
+    document.getElementById('statistics').innerHTML = `
+      <p>Fotos subidas: 120</p>
+      <p>Ventas: 50</p>
+      <p>Vistas totales: 2,300</p>
+      <p>Ganancias: $500 USD</p>
+    `;
+  }
+
+  loadStatistics();
+
+  // Función para actualizar perfil
+  document.getElementById('profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const displayName = document.getElementById('display-name').value;
+    const profilePic = document.getElementById('profile-pic').files[0];
+    const headerImage = document.getElementById('header-image').files[0];
+
+    onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        alert('Por favor, inicia sesión para actualizar tu perfil.');
+        return;
+      }
+
+      try {
+        if (profilePic) {
+          const profilePicRef = ref(storage, `profile-pics/${profilePic.name}`);
+          await uploadBytes(profilePicRef, profilePic);
+          const profilePicURL = await getDownloadURL(profilePicRef);
+          await setDoc(doc(db, "users", currentUser.uid), { displayName, profilePicURL }, { merge: true });
+        }
+
+        if (headerImage) {
+          const headerImageRef = ref(storage, `header-images/${headerImage.name}`);
+          await uploadBytes(headerImageRef, headerImage);
+          const headerImageURL = await getDownloadURL(headerImageRef);
+          await updateDoc(doc(db, "users", currentUser.uid), { headerImageURL });
+        }
+
+        alert("Perfil actualizado.");
+        loadProfile();
+      } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
+        alert("Hubo un error al actualizar tu perfil.");
+      }
+    });
+  });
+
+  // Función para cargar el perfil
+  async function loadProfile() {
+    onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        document.getElementById('display-name-view').innerText = "Inicia sesión para ver tu perfil.";
+        document.getElementById('profile-pic-view').src = "";
+        document.getElementById('header-view').style.backgroundImage = "";
+        return;
+      }
+
+      try {
+        const profileDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (profileDoc.exists()) {
+          const data = profileDoc.data();
+          document.getElementById('display-name-view').innerText = data.name || "Usuario sin nombre";
+          document.getElementById('profile-pic-view').src = data.profileImageUrl || "default-profile-pic.png";
+          document.getElementById('header-view').style.backgroundImage = `url('${data.headerImageURL}')`;
+
+        } else {
+          document.getElementById('display-name-view').innerText = "Perfil no configurado.";
+          document.getElementById('profile-pic-view').src = "default-profile-pic.png";
+          document.getElementById('header-view').style.backgroundImage = "url('default-header-image.png')";
+        }
+      } catch (error) {
+        console.error("Error al cargar el perfil:", error);
+        document.getElementById('display-name-view').innerText = "Error al cargar el perfil.";
+        document.getElementById('profile-pic-view').src = "default-profile-pic.png";
+        document.getElementById('header-view').style.backgroundImage = "url('default-header-image.png')";
+      }
+    });
+  }
+
+  loadProfile();
+</script>  
+<style>
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  background: #0c0c0c;
+  color: #fff;
+  line-height: 1.4;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 0;
+}
+
+header {
+  background: linear-gradient(135deg, #ff0044, #00bcd4);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 6px 30px rgba(255, 0, 0, 0.3);
+  border-bottom: 4px solid #ff0044;
+  position: relative;
+  z-index: 1;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px #ff0044, 0 0 25px #ff0044, 0 0 35px #00bcd4, 0 0 50px #00bcd4;
+  animation: neonEffect 2s ease-in-out infinite alternate;
+}
+
+@keyframes neonEffect {
+  0% {
+    text-shadow: 0 0 20px #ff0044, 0 0 35px #ff0044, 0 0 50px #00bcd4, 0 0 70px #00bcd4;
+  }
+  100% {
+    text-shadow: 0 0 30px #ff0044, 0 0 50px #ff0044, 0 0 70px #00bcd4, 0 0 90px #00bcd4;
+  }
+}
+
+nav a {
+  color: #ffffff;
+  margin: 0 1rem;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+nav a::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: #00bcd4;
+  bottom: -4px;
+  left: 0;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+nav a:hover::after {
+  transform: scaleX(1);
+}
+
+nav a:hover {
+  color: #ff0044;
+  transform: scale(1.03);
+}
+
+main {
+  padding: 3rem 2rem;
+  background: #212121;
+  min-height: 100vh;
+}
+
+#upload-section, #uploaded-media, #profile-section, #statistics-section {
+  background: rgba(25, 25, 25, 0.9);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 6px 40px rgba(255, 0, 0, 0.5);
+  border-left: 6px solid #ff0044;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#upload-section:hover, #uploaded-media:hover, #profile-section:hover, #statistics-section:hover {
+  box-shadow: 0 10px 60px rgba(255, 0, 0, 0.7);
+  transform: scale(1.02);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: popIn 1s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+input, textarea {
+  padding: 1rem;
+  border-radius: 10px;
+  border: 3px solid #ff0044;
+  background: #333;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: background 0.3s ease, border 0.3s ease;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 12px rgba(255, 0, 68, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 18px rgba(255, 0, 68, 0.7);
+  }
+}
+
+input:focus, textarea:focus {
+  background: #222;
+  border: 3px solid #00bcd4;
+}
+
+#media-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.media-item {
+  background: #444;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 6px 40px rgba(255, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.media-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 80px rgba(0, 255, 255, 0.3);
+}
+
+.media-item h3 {
+  color: #ff0044;
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  animation: neonTextGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes neonTextGlow {
+  0% {
+    text-shadow: 0 0 8px #ff0044, 0 0 15px #ff0044, 0 0 25px #ff0044;
+  }
+  100% {
+    text-shadow: 0 0 12px #ff0044, 0 0 25px #ff0044, 0 0 40px #00bcd4;
+  }
+}
+
+.media-item p {
+  color: #bbb;
+  font-size: 0.9rem;
+  animation: fadeInText 1s ease-out;
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.media-item a {
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.media-item a:hover {
+  color: #ff0044;
+}
+
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  background: #1a1a1a;
+  color: #00bcd4;
+  box-shadow: 0 -6px 40px rgba(0, 255, 255, 0.4);
+  position: relative;
+}
+
+footer p {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#header-view {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  border: 3px solid #ff0044;
+  position: relative;
+  box-shadow: 0 6px 50px rgba(255, 0, 0, 0.3);
+  transition: transform 0.4s ease, box-shadow 0.3s ease;
+}
+
+#header-view:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 70px rgba(255, 0, 0, 0.5);
+}
+
+#profile-pic-view {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid #ff0044;
+  margin-bottom: 1rem;
+  box-shadow: 0 6px 40px rgba(255, 0, 0, 0.4);
+  transition: box-shadow 0.4s ease;
+}
+
+#profile-pic-view:hover {
+  box-shadow: 0 10px 60px rgba(255, 0, 0, 0.6);
+}
+
+#uploaded-media-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.uploaded-media {
+  background: #333;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 40px rgba(255, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.uploaded-media:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 80px rgba(0, 255, 255, 0.5);
+}
+
+.uploaded-media h3 {
+  color: #ff0044;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.uploaded-media p {
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+.uploaded-media a {
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.uploaded-media a:hover {
+  color: #ff0044;
+}
+
+.status.pending {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+.status.approved {
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.status.rejected {
+  color: #f44336;
+  font-weight: bold;
+}
+
+button {
+  background: #ff0044;
+  color: #121212;
+  font-size: 1rem;
+  padding: 0.8rem 1.8rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+  background: #00bcd4;
+  transform: scale(1.05);
+}
+
+</style>
+
+</head>
+<body>
+<header>
+  <h1>Panel del Fotógrafo Profesional</h1>
+  <nav>
+    <a href="index.html">Inicio</a>
+    <a href="photographer.html">Fotógrafo</a>
+  </nav>
+</header>
+
+<main>
+  <section id="profile-section">
+    <h2>Perfil del Fotógrafo</h2>
+    <!-- Contenedor del encabezado -->
+    <div id="header-view"></div>
+  
+    <!-- Foto de perfil -->
+    <img id="profile-pic-view" alt="Foto de perfil">
+  
+    <!-- Nombre de usuario -->
+    <h3 id="display-name-view"></h3>
+  
+    <!-- Formulario para actualizar perfil -->
+    <form id="profile-form">
+      <input type="text" id="display-name" placeholder="Nombre de usuario">
+      <input type="file" id="profile-pic" accept="image/*">
+      <input type="file" id="header-image" accept="image/*">
+      <button type="submit">Actualizar Perfil</button>
+    </form>
+  </section>
+  
+
+  <section id="upload-section">
+    <h2>Subir Fotos/Videos</h2>
+    <form id="upload-form">
+      <input type="file" id="file-input" accept="image/*,video/*" multiple>
+      <p><small>Máximo 10 archivos por carga.</small></p>
+  
+      <!-- Categorías -->
+      <label><input type="radio" name="database" value="creative" checked> Creative</label>
+      <label><input type="radio" name="database" value="editorial"> Editorial</label>
+  
+      <!-- Metadatos -->
+      <input type="text" id="title" placeholder="Título" required>
+      <textarea id="description" placeholder="Descripción" required></textarea>
+      
+      <!-- Categorías de medios -->
+      <label><input type="radio" name="category-C" value="Videos" checked> Video</label>
+      <label><input type="radio" name="category-C" value="imagenes"> Imágenes</label>
+      <label><input type="radio" name="category-C" value="ilustraciones"> Ilustración</label>
+      <label><input type="radio" name="category-C" value="vectores"> Vectores</label>
+  
+      <input type="text" id="keywords" placeholder="Palabras clave (separadas por comas)" required>
+  
+      <button type="submit">Subir</button>
+    </form>
+    <p id="upload-status"></p>
+  </section>
+  
+  
+
+  <section id="uploaded-media-section">
+    <h2>Archivos Subidos</h2>
+    <div id="uploaded-media-container">
+      <!-- Aquí se mostrarán los archivos subidos -->
+    </div>
+  </section>
+  
+
+  <section id="statistics-section">
+    <h2>Estadísticas</h2>
+    <div id="statistics"></div>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2024 Panel del Fotógrafo</p>
+</footer>
+</body>
+</html>
