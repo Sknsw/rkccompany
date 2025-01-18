@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería de Videos</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 1rem;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .gallery video {
+      max-width: 200px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      transition: transform 0.3s;
+    }
+    .gallery video:hover {
+      transform: scale(1.1);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal video {
+      max-width: 90%;
+      max-height: 80%;
+    }
+    .modal .actions {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .modal button {
+      margin: 5px;
+      padding: 10px 20px;
+      color: white;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .modal button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Galería de Videos</h1>
+  </header>
+  <main>
+    <div class="gallery" id="gallery"></div>
+
+    <div class="modal" id="modal">
+      <video id="modal-video" controls></video>
+      <div class="actions">
+        <button id="download-watermarked">Descargar con Marca de Agua</button>
+        <button id="purchase">Comprar Sin Marca de Agua</button>
+        <button id="close-modal">Cerrar</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7tqReGvlc",
+      authDomain: "scortsprincess.firebaseapp.com",
+      projectId: "scortsprincess",
+      storageBucket: "scortsprincess.appspot.com",
+      messagingSenderId: "599517218900",
+      appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const gallery = document.getElementById('gallery');
+    const modal = document.getElementById('modal');
+    const modalVideo = document.getElementById('modal-video');
+    let currentVideo = null;
+
+    // Función para cargar videos desde Firestore
+    async function loadVideos() {
+      try {
+        const snapshot = await getDocs(collection(db, 'Videos'));
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const video = document.createElement('video');
+          video.src = data.fileUrl; // URL del video
+          video.alt = data.fileName;
+
+          // Reproducción al pasar el ratón
+          video.addEventListener('mouseenter', () => video.play());
+          video.addEventListener('mouseleave', () => video.pause());
+
+          video.addEventListener('click', () => openModal(data));
+          gallery.appendChild(video);
+        });
+      } catch (error) {
+        console.error("Error cargando los videos:", error);
+      }
+    }
+
+    function openModal(video) {
+      currentVideo = video;
+      modalVideo.src = video.fileUrl;
+      modal.style.display = 'flex';
+    }
+
+    document.getElementById('close-modal').addEventListener('click', () => {
+      modal.style.display = 'none';
+      modalVideo.pause(); // Detener reproducción al cerrar
+    });
+
+    // Descargar video con marca de agua
+    document.getElementById('download-watermarked').addEventListener('click', async () => {
+      if (!currentVideo) return;
+
+      try {
+        const response = await fetch(`/api/watermarked-video?url=${encodeURIComponent(currentVideo.fileUrl)}&filename=${currentVideo.fileName}`);
+        if (!response.ok) throw new Error("Error al descargar el video.");
+
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${currentVideo.fileName}-watermarked.mp4`;
+        link.click();
+      } catch (error) {
+        alert("Error descargando el video con marca de agua.");
+      }
+    });
+
+    // Integración con Stripe
+    const stripe = Stripe('tu-public-key-de-stripe'); // Reemplaza con tu clave pública de Stripe
+
+    document.getElementById('purchase').addEventListener('click', () => {
+      if (!currentVideo) return;
+
+      const qualities = [
+        { label: 'Baja', priceId: 'price_123_low' }, // Reemplaza con tus price_id
+        { label: 'Media', priceId: 'price_123_medium' },
+        { label: 'Alta', priceId: 'price_123_high' },
+      ];
+
+      const quality = prompt(`Selecciona la calidad del video:\n1. Baja ($5)\n2. Media ($10)\n3. Alta ($20)`, '1');
+
+      if (quality >= 1 && quality <= 3) {
+        const selectedQuality = qualities[quality - 1];
+        stripe.redirectToCheckout({
+          lineItems: [{ price: selectedQuality.priceId, quantity: 1 }],
+          mode: 'payment',
+          successUrl: `/success?videoId=${currentVideo.fileName}`,
+          cancelUrl: `/cancel`,
+        }).then((result) => {
+          if (result.error) {
+            alert(result.error.message);
+          }
+        });
+      } else {
+        alert('Selección no válida.');
+      }
+    });
+
+    loadVideos();
+  </script>
+</body>
+</html>
