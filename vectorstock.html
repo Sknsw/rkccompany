@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería de Ilustraciones</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+  <style>
+    :root {
+      --primary-color: #0f0;
+      --secondary-color: #1a1a1a;
+      --background-color: #121212;
+      --text-color: #fff;
+      --card-bg: rgba(255, 255, 255, 0.1);
+      --border-color: rgba(255, 255, 255, 0.3);
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #141414;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 1rem;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .gallery img {
+      max-width: 200px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal img {
+      max-width: 90%;
+      max-height: 80%;
+    }
+    .modal .actions {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .modal button {
+      margin: 5px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Galería de Vector</h1>
+  </header>
+  <main>
+    <div class="gallery" id="gallery"></div>
+
+    <div class="modal" id="modal">
+      <img id="modal-image" src="" alt="Imagen seleccionada">
+      <div class="actions">
+        <button id="download-watermarked">Descargar con Marca de Agua</button>
+        <button id="purchase">Comprar Sin Marca de Agua</button>
+        <button id="close-modal">Cerrar</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+      authDomain: "scortsprincess.firebaseapp.com",
+      projectId: "scortsprincess",
+      storageBucket: "scortsprincess.appspot.com",
+      messagingSenderId: "599517218900",
+      appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const gallery = document.getElementById('gallery');
+    const modal = document.getElementById('modal');
+    const modalImage = document.getElementById('modal-image');
+    let currentImage = null;
+
+    // Cargar imágenes desde Firestore
+    async function loadImages() {
+      const snapshot = await getDocs(collection(db, 'vectores'));
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const img = document.createElement('img');
+        img.src = data.fileUrl; // Imagen original
+        img.alt = data.fileName;
+        img.addEventListener('click', () => openModal(data));
+        gallery.appendChild(img);
+      });
+    }
+
+    function openModal(image) {
+      currentImage = image;
+      modalImage.src = image.fileUrl;
+      modal.style.display = 'flex';
+    }
+
+    document.getElementById('close-modal').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    // Descargar imagen con marca de agua
+    document.getElementById('download-watermarked').addEventListener('click', () => {
+      if (!currentImage) return;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = currentImage.fileUrl;
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        ctx.font = '40px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillText('Epicstock', 20, canvas.height - 50); // Marca de agua
+        const link = document.createElement('a');
+        link.download = `${currentImage.fileName}-watermarked.jpg`;
+        link.href = canvas.toDataURL('image/jpeg');
+        link.click();
+      };
+    });
+
+    // Comprar imagen sin marca de agua
+    document.getElementById('purchase').addEventListener('click', () => {
+      if (!currentImage) return;
+      const sizes = ['Pequeño', 'Mediano', 'Grande'];
+      const size = prompt(`Selecciona el tamaño de la imagen:\n1. Pequeño ($5)\n2. Mediano ($10)\n3. Grande ($20)`, '1');
+      if (size >= 1 && size <= 3) {
+        alert(`Has seleccionado el tamaño ${sizes[size - 1]} para comprar la imagen. Implementa aquí el sistema de pago.`);
+        modal.style.display = 'none';
+      } else {
+        alert('Selección no válida.');
+      }
+    });
+
+    loadImages();
+  </script>
+</body>
+</html>
