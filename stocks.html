@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galerías Profesionales</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 1rem;
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .carousel {
+      position: relative;
+      max-width: 80%;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: white;
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+    }
+    .carousel-item {
+      flex: 0 0 100%;
+      text-align: center;
+    }
+    .carousel-item img, .carousel-item video {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 10px;
+    }
+    .carousel-controls {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+    }
+    .carousel-controls button {
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .carousel-controls button:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Galerías Profesionales</h1>
+  </header>
+  <main>
+    <section id="videos-section">
+      <h2>Videos</h2>
+      <div class="carousel" id="videos-carousel">
+        <div class="carousel-track" id="videos-track"></div>
+        <div class="carousel-controls">
+          <button id="videos-prev">&lt;</button>
+          <button id="videos-next">&gt;</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="images-section">
+      <h2>Imágenes</h2>
+      <div class="carousel" id="images-carousel">
+        <div class="carousel-track" id="images-track"></div>
+        <div class="carousel-controls">
+          <button id="images-prev">&lt;</button>
+          <button id="images-next">&gt;</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="illustrations-section">
+      <h2>Ilustraciones</h2>
+      <div class="carousel" id="illustrations-carousel">
+        <div class="carousel-track" id="illustrations-track"></div>
+        <div class="carousel-controls">
+          <button id="illustrations-prev">&lt;</button>
+          <button id="illustrations-next">&gt;</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="vectors-section">
+      <h2>Vectores</h2>
+      <div class="carousel" id="vectors-carousel">
+        <div class="carousel-track" id="vectors-track"></div>
+        <div class="carousel-controls">
+          <button id="vectors-prev">&lt;</button>
+          <button id="vectors-next">&gt;</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, getDocs, collection } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7tqReGvlc",
+      authDomain: "scortsprincess.firebaseapp.com",
+      projectId: "scortsprincess",
+      storageBucket: "scortsprincess.appspot.com",
+      messagingSenderId: "599517218900",
+      appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadCarousel(collectionName, trackId, isVideo = false) {
+      const track = document.getElementById(trackId);
+      try {
+        const snapshot = await getDocs(collection(db, collectionName));
+        if (snapshot.empty) {
+          console.warn(`La colección ${collectionName} está vacía.`);
+          return;
+        }
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'carousel-item';
+
+          const media = isVideo ? document.createElement('video') : document.createElement('img');
+          media.src = data.fileUrl;
+          media.alt = data.fileName || 'Contenido';
+          if (isVideo) media.controls = true;
+
+          item.appendChild(media);
+          track.appendChild(item);
+        });
+      } catch (error) {
+        console.error(`Error cargando la colección ${collectionName}:`, error);
+      }
+    }
+
+    function setupCarousel(trackId, prevButtonId, nextButtonId) {
+      const track = document.getElementById(trackId);
+      const prevButton = document.getElementById(prevButtonId);
+      const nextButton = document.getElementById(nextButtonId);
+      let currentIndex = 0;
+
+      prevButton.addEventListener('click', () => {
+        currentIndex = Math.max(currentIndex - 1, 0);
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      });
+
+      nextButton.addEventListener('click', () => {
+        currentIndex = Math.min(currentIndex + 1, track.children.length - 1);
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      });
+    }
+
+    loadCarousel('Videos', 'videos-track', true);
+    loadCarousel('imagenes', 'images-track');
+    loadCarousel('ilustraciones', 'illustrations-track');
+    loadCarousel('vectores', 'vectors-track');
+
+    setupCarousel('videos-track', 'videos-prev', 'videos-next');
+    setupCarousel('images-track', 'images-prev', 'images-next');
+    setupCarousel('illustrations-track', 'illustrations-prev', 'illustrations-next');
+    setupCarousel('vectors-track', 'vectors-prev', 'vectors-next');
+  </script>
+</body>
+</html>
