@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Cuenta de Curador</title>
+  <style>
+    /* Estilos básicos para el formulario de creación de cuenta */
+    #create-curator-section {
+      padding: 20px;
+      background-color: #e9ecef;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    #create-curator-form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #create-curator-form label {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    #create-curator-form input {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #create-curator-form button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #create-curator-form button:hover {
+      background-color: #218838;
+    }
+
+    #status-message {
+      margin-top: 15px;
+      color: #28a745;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Formulario para crear una cuenta de curador -->
+  <section id="create-curator-section">
+    <h2>Crear Cuenta de Curador</h2>
+    <form id="create-curator-form">
+      <label for="curator-name">Nombre:</label>
+      <input type="text" id="curator-name" placeholder="Nombre del curador" required>
+
+      <label for="curator-email">Correo:</label>
+      <input type="email" id="curator-email" placeholder="Correo electrónico" required>
+
+      <label for="curator-password">Contraseña:</label>
+      <input type="password" id="curator-password" placeholder="Contraseña" required>
+
+      <label for="curator-registered">Fecha de Registro:</label>
+      <input type="date" id="curator-registered" required>
+
+      <label for="curator-tasks">Tareas Completadas:</label>
+      <input type="number" id="curator-tasks" value="0" required>
+
+      <label for="curator-reviews">Revisiones Realizadas:</label>
+      <input type="number" id="curator-reviews" value="0" required>
+
+      <label for="curator-approvals">Aprobaciones Realizadas:</label>
+      <input type="number" id="curator-approvals" value="0" required>
+
+      <button type="submit">Crear Curador</button>
+    </form>
+    <p id="status-message"></p>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+      authDomain: "scortsprincess.firebaseapp.com",
+      projectId: "scortsprincess",
+      storageBucket: "scortsprincess.appspot.com",
+      messagingSenderId: "599517218900",
+      appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1",
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Función para crear una cuenta de curador
+// Función para crear una cuenta de curador
+async function createCurator() {
+  const name = document.getElementById('curator-name').value;
+  const email = document.getElementById('curator-email').value;
+  const password = document.getElementById('curator-password').value;
+  const registered = document.getElementById('curator-registered').value;
+  const tasksCompleted = 0; // Comienza en 0
+  const reviews = 0; // Comienza en 0
+  const approvals = 0; // Comienza en 0
+
+  if (!name || !email || !password || !registered) {
+    document.getElementById('status-message').innerText = "Por favor, completa todos los campos.";
+    return;
+  }
+
+  try {
+    // Crear usuario en Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Guardar el curador en la base de datos Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      name: name,
+      email: email,
+      registered: registered,
+      tasksCompleted: tasksCompleted,
+      reviews: reviews,
+      approvals: approvals,
+      role: "curator" // Añadimos el campo de rol
+    });
+
+    document.getElementById('status-message').innerText = "Curador creado con éxito!";
+    document.getElementById('create-curator-form').reset();
+  } catch (error) {
+    console.error("Error al crear el curador: ", error);
+    document.getElementById('status-message').innerText = "Hubo un error al crear el curador.";
+  }
+}
+
+    // Evento de creación de curador
+    document.getElementById('create-curator-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      createCurator();
+    });
+  </script>
+</body>
+</html>
