@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Panel de administración completo para gestionar colaboradores, clientes, estadísticas y más.">
+  <meta name="author" content="Administrador">
+  <meta name="keywords" content="Panel, Administración, Estadísticas, Colaboradores, Clientes">
+  <title>Panel de Administración Completo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Script para controlar el menú desplegable -->
+<script>
+document.querySelector('.menu-icon').addEventListener('click', function() {
+  document.querySelector('.mobile-menu').classList.toggle('active');
+});
+</script>
+  <style>
+:root {
+  --primary-color: rgb(13, 239, 247);
+  --secondary-color: #1a1a1a;
+  --background-color: #121212;
+  --text-color: #fff;
+  --card-bg: rgba(255, 255, 255, 0.1);
+  --border-color: rgba(255, 255, 255, 0.3);
+  --accent-color: #ff0044;
+  --highlight-color: #00bcd4;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+header {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--secondary-color);
+  text-align: center;
+  padding: 2rem 1rem;
+  box-shadow: 0 6px 20px rgba(13, 239, 247, 0.5);
+  border-bottom: 4px solid var(--highlight-color);
+  animation: glowEffect 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glowEffect {
+  0% {
+    box-shadow: 0 6px 20px rgba(13, 239, 247, 0.5), 0 0 30px var(--accent-color);
+  }
+  100% {
+    box-shadow: 0 12px 40px rgba(13, 239, 247, 0.7), 0 0 50px var(--highlight-color);
+  }
+}
+
+header h1 {
+  font-size: 2rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 30px var(--primary-color), 0 0 40px var(--highlight-color);
+}
+
+nav ul {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--secondary-color);
+  background: var(--text-color);
+  padding: 1rem 2rem;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.3s;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 20px rgba(13, 239, 247, 0.3);
+}
+
+nav a:hover {
+  background: var(--primary-color);
+  color: var(--text-color);
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(13, 239, 247, 0.6);
+}
+
+/* Menu desplegable */
+nav .menu-icon {
+  display: block; /* El icono siempre visible */
+  cursor: pointer;
+  font-size: 2rem;
+  color: var(--text-color);
+}
+
+/* Menú en versión móvil */
+nav ul.mobile-menu {
+  display: none; /* Oculto por defecto en pantallas grandes */
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+nav ul.mobile-menu.active {
+  display: flex; /* Mostrar el menú cuando se active */
+  flex-direction: column; /* Menú vertical en pantallas pequeñas */
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Media Queries para pantallas pequeñas */
+@media (max-width: 768px) {
+  nav ul {
+    display: none; /* Ocultar en pantallas pequeñas por defecto */
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  nav ul.mobile-menu.active {
+    display: flex; /* Mostrar el menú cuando se active */
+  }
+
+  nav .menu-icon {
+    display: block; /* Mostrar el ícono de menú hamburguesa */
+  }
+}
+
+main {
+  padding: 2rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(13, 239, 247, 0.5);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(13, 239, 247, 0.7);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--highlight-color);
+  text-shadow: 0 0 15px var(--highlight-color);
+}
+
+.card p {
+  font-size: 1.2rem;
+  margin: 0.5rem 0 0;
+  color: #bbb;
+}
+
+.card i {
+  font-size: 2rem;
+  color: var(--primary-color);
+  transition: transform 0.3s;
+}
+
+.card:hover i {
+  transform: rotate(20deg);
+}
+
+section {
+  background: var(--secondary-color);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(13, 239, 247, 0.5);
+  position: relative;
+}
+
+section h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  color: var(--primary-color);
+  text-shadow: 0 0 20px var(--highlight-color);
+  animation: bounceEffect 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes bounceEffect {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #ddd;
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border: 1px solid var(--border-color);
+}
+
+th {
+  background: var(--primary-color);
+  color: var(--secondary-color);
+  font-size: 1.2rem;
+}
+
+td {
+  background: #222;
+}
+
+.button-primary {
+  background: var(--primary-color);
+  color: var(--secondary-color);
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 20px rgba(13, 239, 247, 0.4);
+}
+
+.button-primary:hover {
+  background: var(--text-color);
+  color: var(--primary-color);
+  transform: scale(1.1);
+  box-shadow: 0 8px 30px rgba(13, 239, 247, 0.7);
+}
+
+canvas {
+  width: 100%;
+  max-width: 600px;
+  margin: 1rem auto;
+  display: block;
+  box-shadow: 0 6px 30px rgba(13, 239, 247, 0.5);
+  border-radius: 10px;
+}
+
+.chart-container {
+  display: grid;
+  gap: 2rem;
+}
+
+/* Media Queries para pantallas pequeñas */
+@media (max-width: 768px) {
+  nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    display: none; /* Ocultar por defecto */
+  }
+
+  nav .menu-icon {
+    display: block; /* Mostrar el ícono de menú hamburguesa */
+  }
+
+  nav ul.mobile-menu.active {
+    display: flex; /* Mostrar los enlaces cuando se active */
+  }
+
+  main {
+    gap: 1.5rem;
+  }
+
+  .card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .card i {
+    font-size: 2.5rem;
+  }
+
+  .card h3 {
+    font-size: 1.4rem;
+  }
+}
+
+  </style>
+  
+</head>
+<body>
+  <header>
+    <h1>Panel de Administración Completo</h1>
+    <nav>
+      <!-- Icono del menú hamburguesa para pantallas pequeñas -->
+      <div class="menu-icon">&#9776;</div>
+      <ul class="mobile-menu">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="estadisticas.html">Estadísticas</a></li>
+        <li><a href="registrocurador.html">Crear curador</a></li>
+        <li><a href="ajustecolaboradores.html">Colaboradores</a></li>
+        <li><a href="#">Configuración</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <!-- Tarjetas de Resumen -->
+    <div class="card">
+      <div>
+        <h3>Ganancias Semanales</h3>
+        <p id="weekly-earnings">0€</p>
+      </div>
+      <i class="fas fa-chart-line"></i>
+    </div>
+    <div class="card">
+      <div>
+        <h3>Mensual</h3>
+        <p id="monthly-earnings">0€</p>
+      </div>
+      <i class="fas fa-chart-line"></i>
+    </div>
+    <div class="card">
+      <div>
+        <h3>Anual</h3>
+        <p id="annual-earnings">0€</p>
+      </div>
+      <i class="fas fa-chart-line"></i>
+    </div>
+    <div class="card">
+      <div>
+        <h3>Clientes Activos</h3>
+        <p id="active-buyers">0</p>
+      </div>
+      <i class="fas fa-user-friends"></i>
+    </div>
+    
+    <div class="card">
+      <div>
+        <h3>Colaboradores Activos</h3>
+        <p id="active-collaborators">0</p>
+      </div>
+      <i class="fas fa-users"></i>
+    </div>
+
+    <!-- Sección de Gráficos -->
+    <section>
+      <h2>Gestión de Colaboradores</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Portafolio</th>
+            <th>Fotos</th>
+            <th>Videos</th>
+            <th>País</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="distributors">
+          <!-- Datos dinámicos -->
+        </tbody>
+      </table>
+    </section>
+    
+    <section>
+      <h2>Gestión de Clientes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="buyers">
+          <!-- Datos dinámicos -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 EPICSTOCK//Panel de Administración</p>
+  </footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+
+  // Configuración de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+    authDomain: "scortsprincess.firebaseapp.com",
+    projectId: "scortsprincess",
+    storageBucket: "scortsprincess.appspot.com",
+    messagingSenderId: "599517218900",
+    appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1"
+  };
+  
+  // Inicializa Firebase y Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  // Cargar usuarios desde Firestore
+  async function loadUsers() {
+    try {
+      // Referencia a la colección "users"
+      const usersRef = collection(db, "users");
+      const usersSnapshot = await getDocs(usersRef);
+
+      console.log('Usuarios obtenidos:', usersSnapshot.docs.length); // Verificar la cantidad de documentos
+      
+      // Selección de tablas en el DOM (correcto)
+      const tbodyBuyers = document.getElementById('buyers');
+      const tbodyDistributors = document.getElementById('distributors');
+      const activeBuyersElement = document.getElementById('active-buyers');
+      const activeCollaboratorsElement = document.getElementById('active-collaborators');
+  
+      // Limpia el contenido actual de las tablas
+      tbodyBuyers.innerHTML = '';
+      tbodyDistributors.innerHTML = '';
+  
+      // Variables para contar los usuarios activos
+      let activeBuyersCount = 0;
+      let activeCollaboratorsCount = 0;
+  
+      // Verifica si hay documentos en Firestore
+      if (usersSnapshot.empty) {
+        console.log('No hay usuarios en la colección.');
+        return;  // Si no hay datos, terminamos aquí
+      }
+
+      // Itera sobre los documentos de la colección
+      usersSnapshot.forEach(doc => {
+        const user = doc.data();
+        console.log('Usuario cargado:', user); // Verificar los datos de cada usuario
+  
+        // Verifica el rol del usuario y añade la fila a la tabla correspondiente
+        if (user.role === "buyer") {
+          activeBuyersCount++;
+          const row = `<tr>
+            <td>${user.name || 'N/A'}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>${user.phone || 'N/A'}</td>
+            <td><button class="button-primary" data-id="${doc.id}">Editar</button></td>
+          </tr>`;
+          tbodyBuyers.innerHTML += row;
+        } else if (user.role === "distributor") {
+          activeCollaboratorsCount++;
+          const row = `<tr>
+            <td>${user.name || 'N/A'}</td>
+            <td>${user.portfolioUrl || 'N/A'}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>${user.phone || 'N/A'}</td>
+            <td>${user.country || 'N/A'}</td> 
+            <td><button class="button-primary" data-id="${doc.id}">Editar</button></td>
+          </tr>`;
+          tbodyDistributors.innerHTML += row;
+        }
+      });
+
+      // Actualiza los contadores en el DOM
+      activeBuyersElement.textContent = activeBuyersCount;
+      activeCollaboratorsElement.textContent = activeCollaboratorsCount;
+
+      console.log("Usuarios cargados exitosamente.");
+    } catch (error) {
+      console.error("Error al cargar los usuarios:", error);
+    }
+  }
+  
+  // Llama a la función para cargar los usuarios al iniciar la página
+  loadUsers();
+</script>
+<script>
+  document.querySelector('.menu-icon').addEventListener('click', function() {
+    document.querySelector('.mobile-menu').classList.toggle('active');
+  });
+  </script>
+</body>
+</html>
