@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Cliente - Estilo Alamy Mejorado</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f3f4f6, #e2e8f0);
+      color: #333;
+      margin: 0;
+    }
+
+    header {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 20px 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    header .navbar-brand {
+      font-size: 2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .content-section {
+      padding: 30px 15px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .gallery-item {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .gallery-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: auto;
+    }
+
+    .gallery-item .info {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .gallery-item .info h5 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #495057;
+    }
+
+    .gallery-item .info p {
+      margin: 0 0 10px;
+      color: #6c757d;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      font-size: 1rem;
+      border-radius: 30px;
+      transition: background 0.3s;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #2575fc, #6a11cb);
+    }
+
+    footer {
+      background: linear-gradient(90deg, #2575fc, #6a11cb);
+      color: white;
+      text-align: center;
+      padding: 20px 0;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+
+    .navbar-nav .nav-link {
+      color: #f8f9fa !important;
+      font-size: 1rem;
+      margin-right: 15px;
+      text-transform: uppercase;
+      font-weight: bold;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    .navbar-nav .nav-link:hover {
+      color: #00d1ff !important;
+    }
+
+    .navbar-nav .nav-link::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 2px;
+      background: #00d1ff;
+      transition: width 0.3s;
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+    }
+
+    .navbar-nav .nav-link:hover::after {
+      width: 100%;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">Panel Cliente</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="#imagenes" onclick="showSection('imagenes')">Imágenes</a></li>
+            <li class="nav-item"><a class="nav-link" href="#videos" onclick="showSection('videos')">Videos</a></li>
+            <li class="nav-item"><a class="nav-link" href="#vectores" onclick="showSection('vectores')">Vectores</a></li>
+            <li class="nav-item"><a class="nav-link" href="#ilustraciones" onclick="showSection('ilustraciones')">Ilustraciones</a></li>
+            <li class="nav-item"><a class="nav-link" href="#carrito" onclick="showSection('carrito')">Carrito</a></li>
+          </ul>
+          <div id="user-info" class="text-white ms-3"></div>
+          <button id="logout-btn" class="btn btn-danger">Cerrar sesión</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+  
+  <main>
+    <div class="container mt-4">
+      <div id="user-info" class="text-center mb-3">
+        <!-- Aquí se mostrará el mensaje de bienvenida al usuario -->
+      </div>
+      <section id="imagenes" class="content-section">
+        <h2 class="text-center">Imágenes</h2>
+        <div class="gallery" id="imagenes-gallery"></div>
+      </section>
+      <section id="videos" class="content-section d-none">
+        <h2 class="text-center">Videos</h2>
+        <div class="gallery" id="videos-gallery"></div>
+      </section>
+      <section id="vectores" class="content-section d-none">
+        <h2 class="text-center">Vectores</h2>
+        <div class="gallery" id="vectores-gallery"></div>
+      </section>
+      <section id="ilustraciones" class="content-section d-none">
+        <h2 class="text-center">Ilustraciones</h2>
+        <div class="gallery" id="ilustraciones-gallery"></div>
+      </section>
+      <section id="carrito" class="content-section d-none">
+        <h2 class="text-center">Carrito</h2>
+        <ul id="cart-items" class="list-group mb-4"></ul>
+        <button class="btn btn-success w-100">Finalizar Compra</button>
+      </section>
+    </div>
+  </main>
+  
+
+  <footer>
+    &copy; 2025 Panel Cliente - Inspirado en Alamy. Diseño futurista para impresionar.
+  </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+        authDomain: "scortsprincess.firebaseapp.com",
+        projectId: "scortsprincess",
+        storageBucket: "scortsprincess.appspot.com",
+        messagingSenderId: "599517218900",
+        appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1",
+      };
+  
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+  
+      let carrito = [];
+  
+      // Cambiar de sección
+      window.showSection = (sectionId) => {
+        document.querySelectorAll(".content-section").forEach((section) => {
+          section.classList.add("d-none");
+        });
+        document.getElementById(sectionId).classList.remove("d-none");
+      };
+  
+      // Verificar si el usuario está autenticado
+      onAuthStateChanged(auth, async (user) => {
+        const userInfo = document.getElementById("user-info");
+        if (user) {
+          userInfo.innerHTML = `<p>Bienvenido, ${user.email}</p>`;
+          await cargarContenido(); // Cargar contenido al autenticarse
+        } else {
+          window.location.href = "/login.html";
+        }
+      });
+  
+      // Función para agregar la marca de agua a la URL
+      const addWatermark = (fileUrl) => {
+        return `${fileUrl}?watermark=EpicStock`; // Agrega la marca de agua
+      };
+  
+      // Cargar contenido desde Firestore
+      async function cargarContenido() {
+        const colecciones = {
+          imagenes: "imagenes-gallery",
+          Videos: "videos-gallery",
+          vectores: "vectores-gallery",
+          ilustraciones: "ilustraciones-gallery",
+        };
+  
+        for (const [coleccion, galleryId] of Object.entries(colecciones)) {
+          const galleryElement = document.getElementById(galleryId);
+          galleryElement.innerHTML = ""; // Limpiar galería
+          await cargarColeccion(coleccion, galleryElement, coleccion === "videos" ? "video" : "imagen");
+        }
+      }
+  
+      // Función auxiliar para cargar y renderizar contenido desde una colección
+      async function cargarColeccion(coleccion, galleryElement, tipo) {
+        try {
+          const snapshot = await getDocs(collection(db, coleccion));
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+  
+            const galleryItem = document.createElement("div");
+            galleryItem.classList.add("gallery-item");
+  
+            // Construir contenido dinámico
+            let contenidoHTML =
+              tipo === "video"
+                ? `<video controls><source src="${addWatermark(data.fileUrlWithWatermark)}" type="video/mp4"></video>`
+                : `<img src="${addWatermark(data.fileUrlWithWatermark)}" alt="${data.fileName}">`;
+  
+            contenidoHTML += `
+              <div class="info">
+                <h5>${data.fileName}</h5>
+                <p>Categoría: ${data.category || "Sin categoría"}</p>
+                <p>Precio: $${data.price || "Gratis"}</p>
+              </div>
+            `;
+            galleryItem.innerHTML = contenidoHTML;
+  
+            // Botón de descargar con marca de agua
+            const descargarBtn = document.createElement("a");
+            descargarBtn.className = "btn btn-secondary w-100 mt-2";
+            descargarBtn.textContent = "Descargar con marca de agua";
+  
+            // Usar el enlace directo para la descarga
+            descargarBtn.addEventListener("click", (e) => {
+              e.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
+  
+              // Crear el enlace para descargar el archivo directamente
+              const a = document.createElement("a");
+              a.href = addWatermark(data.fileUrlWithWatermark); // La URL con marca de agua
+              a.download = data.fileName; // Nombre del archivo para descargar
+              a.target = "_blank"; // Para que la descarga se realice en una nueva ventana
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            });
+  
+            // Añadir el botón a la galería
+            galleryItem.appendChild(descargarBtn);
+  
+            // Botón de comprar
+            const comprarBtn = document.createElement("button");
+            comprarBtn.className = "btn btn-success w-100 mt-2";
+            comprarBtn.textContent = "Comprar y descargar sin marca de agua";
+            comprarBtn.addEventListener("click", async () => {
+              await procesarCompra(doc.id, data.fileUrlWithoutWatermark, data.fileName);
+            });
+            galleryItem.appendChild(comprarBtn);
+  
+            galleryElement.appendChild(galleryItem);
+          });
+        } catch (error) {
+          console.error(`Error al cargar la colección ${coleccion}:`, error);
+        }
+      }
+  
+      // Función para descargar un archivo
+      function descargarArchivo(url, fileName) {
+        const a = document.createElement("a");
+        a.href = url; // La URL del archivo (con o sin marca de agua)
+        a.download = fileName; // Nombre del archivo para descargar
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+  
+      // Procesar compra
+      async function procesarCompra(fileId, fileUrlNoWatermark, fileName) {
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Debe iniciar sesión para realizar una compra.");
+          return;
+        }
+  
+        try {
+          // Guardar en la colección del usuario (opcional)
+          const userRef = doc(db, "usuarios", user.uid);
+          await updateDoc(userRef, {
+            compras: arrayUnion(fileId), // Agregar el ID al historial de compras
+          });
+  
+          // Descargar el archivo sin marca de agua
+          descargarArchivo(fileUrlNoWatermark, fileName);
+  
+          alert("Compra realizada con éxito. Se descargará el archivo sin marca de agua.");
+        } catch (error) {
+          console.error("Error al procesar la compra:", error);
+          alert("Ocurrió un error al procesar la compra.");
+        }
+      }
+  
+      // Cerrar sesión
+      const logoutBtn = document.getElementById("logout-btn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          try {
+            await signOut(auth);
+            window.location.href = "/auth2.html";
+          } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+          }
+        });
+      }
+    });
+  </script>
+  
+  
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.toggle('d-none', section.id !== sectionId);
+      });
+    }
+  </script>
+</body>
+</html>
