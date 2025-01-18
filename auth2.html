@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In / Register - Alamy Clone</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: auto;
+            display: flex;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .image-section {
+            flex: 1;
+            background-image: url('https://i.pinimg.com/originals/9e/ba/d6/9ebad666965fa74ef88c82b4c945c980.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .form-section {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .form-section h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .form-section label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-section input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .form-section input:focus {
+            border-color: #0073e6;
+            outline: none;
+        }
+
+        .form-section button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0073e6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .form-section button:hover {
+            background-color: #005bb5;
+        }
+
+        .form-section p {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .form-section p a {
+            color: #0073e6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .form-section p a:hover {
+            text-decoration: underline;
+        }
+
+        .tab {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: #ccc;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .tab button.active {
+            background: #0073e6;
+            color: white;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .role-selector button {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .role-selector button.active {
+            background: #0073e6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="image-section"></div>
+        <div class="form-section">
+            <div class="tab">
+                <button id="login-tab" class="active">Log In</button>
+                <button id="register-tab">Register</button>
+            </div>
+
+            <div id="login-form" class="form-container active">
+                <h1>Log In</h1>
+                <form>
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required>
+
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+
+                    <button type="submit">Log In</button>
+                </form>
+            </div>
+
+            <div id="register-form" class="form-container">
+                <h1>Register</h1>
+                <form>
+                    <label for="register-name">Full Name</label>
+                    <input type="text" id="register-name" placeholder="Enter your name" required>
+
+                    <label for="register-email">Email Address</label>
+                    <input type="email" id="register-email" placeholder="Enter your email" required>
+
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" placeholder="Enter your password" required>
+
+                    <label for="register-phone">Phone Number</label>
+                    <input type="text" id="register-phone" placeholder="Enter your phone number" required>
+
+                    <label for="register-country">Country</label>
+                    <input type="text" id="register-country" placeholder="Enter your country" required>
+
+                    <div class="role-selector">
+                        <button id="buyer-option" class="active" type="button">Buyer</button>
+                        <button id="distributor-option" type="button">Distributor</button>
+                    </div>
+
+                    <label for="register-profile-image">Profile Image</label>
+                    <input type="file" id="register-profile-image" accept="image/*">
+
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+      authDomain: "scortsprincess.firebaseapp.com",
+      projectId: "scortsprincess",
+      storageBucket: "scortsprincess.appspot.com",
+      messagingSenderId: "599517218900",
+      appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const toggleActiveRole = (role) => {
+      document.getElementById("buyer-option").classList.toggle("active", role === "buyer");
+      document.getElementById("distributor-option").classList.toggle("active", role === "distributor");
+    };
+
+    document.getElementById("buyer-option").addEventListener("click", () => toggleActiveRole("buyer"));
+    document.getElementById("distributor-option").addEventListener("click", () => toggleActiveRole("distributor"));
+
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("register-email").value;
+      const password = document.getElementById("register-password").value;
+      const name = document.getElementById("register-name").value;
+      const phone = document.getElementById("register-phone").value;
+      const country = document.getElementById("register-country").value;
+      const role = document.getElementById("buyer-option").classList.contains("active") ? "buyer" : "distributor";
+      const profileImageFile = document.getElementById("register-profile-image").files[0];
+
+      if (!email || !password || !name || !phone || !country) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      let profileImageUrl = "";
+      try {
+        // Crear el usuario en Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Subir la imagen de perfil, si se proporciona
+        if (profileImageFile) {
+          const storageRef = ref(storage, `profile_images/${userCredential.user.uid}`);
+          await uploadBytes(storageRef, profileImageFile);
+          profileImageUrl = await getDownloadURL(storageRef);
+        }
+
+        // Generar la URL del portafolio automáticamente
+        const portfolioUrl = `https://mi-sitio.com/portafolio/${userCredential.user.uid}`;
+
+        // Guardar los datos del usuario en Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          name,
+          email,
+          phone,
+          country,
+          role,
+          profileImageUrl,
+          isAdmin: false,
+          portfolioUrl,  // Guardar la URL del portafolio en el documento del usuario
+        });
+
+        // Crear un portafolio vacío para el distribuidor
+        if (role === "distributor") {
+          const portfolioData = {
+            userId: userCredential.user.uid,
+            portfolioItems: [],  // Aquí puedes agregar los productos más tarde
+            createdAt: new Date(),
+            portfolioUrl,  // Agregar la URL del portafolio
+          };
+          await setDoc(doc(db, "portfolios", userCredential.user.uid), portfolioData);
+        }
+
+        alert("Registration successful!");
+      } catch (error) {
+        if (error.code === "auth/email-already-in-use") {
+          alert("This email is already registered. Please log in.");
+        } else {
+          alert("Registration error: " + error.message);
+        }
+      }
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userDocRef = doc(db, "users", userCredential.user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+
+          if (userData.isAdmin) {
+            window.location.href = "admin.html";
+          } else if (userData.role === "buyer") {
+            window.location.href = "client.html";
+          } else if (userData.role === "distributor") {
+            window.location.href = `photographer.html?userId=${userCredential.user.uid}`;
+          } else if (userData.role === "curator") {
+            window.location.href = "curator.html";
+          } else {
+            alert("Unrecognized role.");
+          }
+        } else {
+          alert("User profile not found.");
+        }
+      } catch (error) {
+        alert("Login error: " + error.message);
+      }
+    });
+
+    document.getElementById("register-tab").addEventListener("click", () => {
+      document.getElementById("register-form").classList.add("active");
+      document.getElementById("login-form").classList.remove("active");
+    });
+
+    document.getElementById("login-tab").addEventListener("click", () => {
+      document.getElementById("login-form").classList.add("active");
+      document.getElementById("register-form").classList.remove("active");
+    });
+</script>
+
+        
+</body>
+</html>
