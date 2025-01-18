@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Curador</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* General Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(120deg, #f39c12, #8e44ad);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(90deg, #8e44ad, #3498db);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Profile Section */
+    .profile-card {
+      background: white;
+      color: #333;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 600px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      transform: scale(1);
+      transition: transform 0.3s ease;
+    }
+
+    .profile-card:hover {
+      transform: scale(1.05);
+    }
+
+    .profile-info p {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+
+    .profile-actions button {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    .profile-actions button:hover {
+      background: #c0392b;
+    }
+
+    /* Main Section */
+    main {
+      padding: 2rem;
+    }
+
+    #pending-list div {
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    #pending-list div button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    #pending-list div button:hover {
+      background: #2980b9;
+    }
+
+    /* Preview Section */
+    #preview-section {
+      text-align: center;
+      overflow: hidden; /* Evita que el contenido se sobresalga */
+    }
+
+    #preview-container {
+      border: 2px solid #fff;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 600px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    img, video {
+      max-width: 100%;
+      max-height: 400px;
+      object-fit: contain; /* Escala contenido proporcionalmente */
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    #tools button {
+      background: #2ecc71;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    #tools button:hover {
+      background: #27ae60;
+    }
+
+    #actions button {
+      background: #8e44ad;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    #actions button:hover {
+      background: #6c3483;
+    }
+
+    #approve-btn {
+      background: #2ecc71;
+    }
+
+    #approve-btn:hover {
+      background: #27ae60;
+    }
+
+    #reject-btn {
+      background: #e74c3c;
+    }
+
+    #reject-btn:hover {
+      background: #c0392b;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+</style>
+
+</head>
+<body>
+  <header>
+    <h1>🔥 Panel de Curador 🔥</h1>
+  </header>
+  <main>
+    <!-- Sección del perfil del curador -->
+    <section id="profile-section">
+      <div class="profile-card">
+        <h2>👤 Perfil del Curador</h2>
+        <div class="profile-info">
+          <p><strong>Nombre:</strong> <span id="curator-name">Cargando...</span></p>
+          <p><strong>Correo:</strong> <span id="curator-email">Cargando...</span></p>
+          <p><strong>Fecha de Registro:</strong> <span id="curator-registered">Cargando...</span></p>
+          <p><strong>Tareas Completadas:</strong> <span id="curator-tasks">Cargando...</span></p>
+          <p><strong>Revisiones Realizadas:</strong> <span id="curator-reviews">Cargando...</span></p>
+          <p><strong>Aprobaciones Realizadas:</strong> <span id="curator-approvals">Cargando...</span></p>
+        </div>
+        <div class="profile-actions">
+          <button id="logout-btn">Cerrar Sesión</button>
+        </div>
+      </div>
+    </section>
+
+<!-- Sección de revisión de contenido -->
+<section id="curator-section">
+  <h2>✨ Revisión de Contenido ✨</h2>
+
+  <!-- Lista de archivos pendientes -->
+  <div id="pending-list" aria-live="polite"></div>
+
+  <!-- Sección de previsualización -->
+  <div id="preview-section" hidden>
+    <h3>Vista Previa</h3>
+
+    <!-- Contenedor de la vista previa -->
+    <div id="preview-container">
+      <img 
+        id="preview-image" 
+        src="" 
+        alt="Vista previa de imagen" 
+        hidden>
+      <video 
+        id="preview-video" 
+        controls 
+        hidden></video>
+      <iframe 
+        id="preview-doc" 
+        src="" 
+        title="Vista previa de documento" 
+        hidden></iframe>
+    </div>
+
+    <!-- Controles de transformación -->
+    <div id="tools">
+      <button id="zoom-in-btn" aria-label="Acercar">🔍 Zoom In</button>
+      <button id="zoom-out-btn" aria-label="Alejar">🔍 Zoom Out</button>
+      <button id="reset-zoom-btn" aria-label="Restablecer Zoom">♻️ Restablecer</button>
+      <button id="rotate-left-btn" aria-label="Rotar a la izquierda">↩️ Rotar Izquierda</button>
+      <button id="rotate-right-btn" aria-label="Rotar a la derecha">↪️ Rotar Derecha</button>
+    </div>
+
+    <!-- Selección de categoría -->
+    <div id="category-selection">
+      <h4>Selecciona una categoría:</h4>
+      <label><input type="radio" name="databaseType" value="imagenes"> Imágenes</label>
+      <label><input type="radio" name="databaseType" value="Videos"> Videos</label>
+      <label><input type="radio" name="databaseType" value="vectores"> Vectores</label>
+      <label><input type="radio" name="databaseType" value="ilustraciones"> Ilustraciones</label>
+    </div>
+
+    <!-- Acciones de aprobación/rechazo -->
+    <div id="actions">
+      <button id="approve-btn" class="approve-btn" aria-label="Aprobar contenido">✅ Aprobar</button>
+      <button id="reject-btn" class="reject-btn" aria-label="Rechazar contenido">❌ Rechazar</button>
+    </div>
+  </div>
+</section>
+
+  </main>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { 
+        getFirestore, collection, doc, getDoc, getDocs, updateDoc, deleteDoc, setDoc 
+    } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+        authDomain: "scortsprincess.firebaseapp.com",
+        projectId: "scortsprincess",
+        storageBucket: "scortsprincess.appspot.com",
+        messagingSenderId: "599517218900",
+        appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // Variables globales
+    let currentUserId = null;
+    let currentZoom = 1;
+    let rotation = 0;
+
+    // Función para cargar los archivos pendientes
+    async function loadPendingUploads() {
+        const pendingList = document.getElementById('pending-list');
+        pendingList.innerHTML = '';
+
+        try {
+            const snapshot = await getDocs(collection(db, 'pendingUploads'));
+
+            if (snapshot.empty) {
+                pendingList.innerHTML = '<div class="no-files">No hay archivos pendientes de revisión.</div>';
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const fileName = data.fileName || "Archivo sin nombre";
+                const fileUrl = data.fileUrlWithoutWatermark || "#";
+                const fileType = data.type || "Desconocido";
+
+                const div = document.createElement('div');
+                div.classList.add('file-item');
+                div.innerHTML = `
+                    <p>${fileName}</p>
+                    <button onclick="previewFile('${doc.id}', '${fileUrl.replace(/'/g, "\\'")}', '${fileType.replace(/'/g, "\\'")}')">Revisar</button>
+                `;
+                pendingList.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Error al cargar archivos pendientes:', error);
+            pendingList.innerHTML = '<div class="error">Error al cargar los archivos pendientes.</div>';
+        }
+    }
+
+    // Función para previsualizar un archivo
+    window.previewFile = function (id, fileUrl, fileType) {
+        window.currentFileId = id;
+
+        const img = document.getElementById('preview-image');
+        const vid = document.getElementById('preview-video');
+        const docFrame = document.getElementById('preview-doc');
+
+        img.style.display = 'none';
+        vid.style.display = 'none';
+        docFrame.style.display = 'none';
+
+        if (!fileUrl || fileUrl.trim() === '') {
+            console.error('La URL del archivo no es válida:', fileUrl);
+            alert('No se puede cargar el archivo. La URL es inválida.');
+            return;
+        }
+
+        if (fileType.toLowerCase() === 'imagen') {
+            img.src = fileUrl;
+            img.style.display = 'block';
+        } else if (fileType.toLowerCase() === 'video') {
+            vid.src = fileUrl;
+            vid.style.display = 'block';
+        } else {
+            docFrame.src = fileUrl;
+            docFrame.style.display = 'block';
+        }
+
+        currentZoom = 1;
+        rotation = 0;
+        applyTransform();
+
+        document.getElementById('preview-section').style.display = 'block';
+    };
+
+    // Aplicar transformaciones al elemento visible
+    function applyTransform() {
+        const img = document.getElementById('preview-image');
+        const vid = document.getElementById('preview-video');
+        const docFrame = document.getElementById('preview-doc');
+
+        const element = img.style.display === 'block' ? img :
+            vid.style.display === 'block' ? vid :
+            docFrame;
+
+        element.style.transform = `scale(${currentZoom}) rotate(${rotation}deg)`;
+    }
+
+    // Controles de zoom y rotación
+    document.getElementById('zoom-in-btn').addEventListener('click', () => {
+        currentZoom += 0.2;
+        applyTransform();
+    });
+
+    document.getElementById('zoom-out-btn').addEventListener('click', () => {
+        if (currentZoom > 0.4) currentZoom -= 0.2;
+        applyTransform();
+    });
+
+    document.getElementById('reset-zoom-btn').addEventListener('click', () => {
+        currentZoom = 1;
+        rotation = 0;
+        applyTransform();
+    });
+
+    document.getElementById('rotate-left-btn').addEventListener('click', () => {
+        rotation -= 90;
+        applyTransform();
+    });
+
+    document.getElementById('rotate-right-btn').addEventListener('click', () => {
+        rotation += 90;
+        applyTransform();
+    });
+ 
+    // Función para manejar la aprobación de un archivo
+    async function approveFile(fileId) {
+        try {
+            const selectedCategory = document.querySelector('input[name="databaseType"]:checked');
+            if (!selectedCategory) {
+                alert('Por favor, selecciona una categoría antes de aprobar el archivo.');
+                return;
+            }
+
+            const category = selectedCategory.value;
+            const fileRef = doc(db, 'pendingUploads', fileId);
+            const fileDoc = await getDoc(fileRef);
+
+            if (fileDoc.exists()) {
+                const fileData = fileDoc.data();
+                await setDoc(doc(db, category, fileId), fileData);
+                await deleteDoc(fileRef);
+                await updateCuratorMetrics('approvals');
+                alert('✅ El archivo ha sido aprobado y movido a la categoría seleccionada.');
+                loadPendingUploads();
+            } else {
+                alert('El archivo ya no existe en la base de datos.');
+            }
+        } catch (error) {
+            console.error('Error al aprobar el archivo:', error);
+            alert('❌ Ocurrió un error al intentar aprobar el archivo.');
+        }
+    }
+
+    // Función para manejar el rechazo de un archivo
+    async function rejectFile(fileId) {
+        try {
+            await deleteDoc(doc(db, 'pendingUploads', fileId));
+            await updateCuratorMetrics('rejections');
+            alert('❌ El archivo ha sido rechazado.');
+            loadPendingUploads();
+        } catch (error) {
+            console.error('Error al rechazar el archivo:', error);
+            alert('❌ Ocurrió un error al intentar rechazar el archivo.');
+        }
+    }
+
+    // Botones de aprobación y rechazo
+    document.getElementById('approve-btn').addEventListener('click', () => {
+        const fileId = getCurrentFileId();
+        if (fileId) approveFile(fileId);
+    });
+
+    document.getElementById('reject-btn').addEventListener('click', () => {
+        const fileId = getCurrentFileId();
+        if (fileId) rejectFile(fileId);
+    });
+
+    function getCurrentFileId() {
+        if (!window.currentFileId) {
+            alert('No se ha seleccionado un archivo para procesar.');
+            return null;
+        }
+        return window.currentFileId;
+    }
+
+    async function updateCuratorMetrics(actionType) {
+        if (!currentUserId) return;
+
+        try {
+            const curatorRef = doc(db, 'users', currentUserId);
+            const docSnap = await getDoc(curatorRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const updateData = {
+                    tasksCompleted: (data.tasksCompleted || 0) + 1,
+                    reviews: (data.reviews || 0) + 1,
+                };
+
+                if (actionType === 'approvals') {
+                    updateData.approvals = (data.approvals || 0) + 1;
+                } else if (actionType === 'rejections') {
+                    updateData.rejections = (data.rejections || 0) + 1;
+                }
+
+                await updateDoc(curatorRef, updateData);
+                loadCuratorProfile(currentUserId);
+            }
+        } catch (error) {
+            console.error('Error al actualizar las métricas del curador:', error);
+        }
+    }
+
+    // Cargar el perfil del curador
+    async function loadCuratorProfile(userId) {
+        try {
+            const curatorRef = doc(db, 'users', userId);
+            const docSnap = await getDoc(curatorRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('curator-name').textContent = data.name || "Sin nombre";
+                document.getElementById('curator-email').textContent = data.email || "Sin correo";
+                document.getElementById('curator-registered').textContent = data.registeredDate || "Desconocida";
+                document.getElementById('curator-tasks').textContent = data.tasksCompleted || 0;
+                document.getElementById('curator-reviews').textContent = data.reviews || 0;
+                document.getElementById('curator-approvals').textContent = data.approvals || 0;
+            } else {
+                console.warn("No se encontró el perfil del curador.");
+            }
+        } catch (error) {
+            console.error("Error al cargar el perfil del curador:", error);
+        }
+    }
+
+    // Cerrar sesión
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            window.location.href = 'auth2.html';
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+        }
+    });
+
+    // Manejar el estado de autenticación
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            loadPendingUploads();
+            loadCuratorProfile(user.uid);
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+</body>
+</html>
