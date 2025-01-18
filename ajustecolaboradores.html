@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración de Colaboradores</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+:root {
+  --primary-color: rgb(13, 239, 247);
+  --secondary-color: #ff0044;
+  --background-color: #121212;
+  --text-color: white;
+  --accent-color: #bbb;
+  --hover-color: #1a1a1a;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+h1 {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 5px rgba(13, 239, 247, 0.5);
+}
+
+.collaborator-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.collaborator-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 15px rgba(13, 239, 247, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+.collaborator-card:hover {
+  box-shadow: 0 8px 20px rgba(13, 239, 247, 0.6);
+}
+
+.collaborator-card h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.collaborator-card label {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--accent-color);
+}
+
+.collaborator-card input[type="number"],
+.collaborator-card select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-color);
+  transition: background-color 0.3s ease;
+}
+
+.collaborator-card input[type="number"]:focus,
+.collaborator-card select:focus {
+  background: rgba(0, 0, 0, 0.7);
+  outline: none;
+  border: 1px solid var(--primary-color);
+}
+
+.collaborator-card button {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--primary-color);
+  border: none;
+  color: var(--hover-color);
+  font-size: 1.1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.collaborator-card button:hover {
+  background: var(--secondary-color);
+  transform: scale(1.05);
+}
+
+nav {
+  margin-top: 2rem;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  background: var(--primary-color);
+  padding: 1rem 2rem;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+  font-size: 1.3rem;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 15px rgba(13, 239, 247, 0.3);
+}
+
+nav a:hover {
+  background: var(--secondary-color);
+  color: var(--text-color);
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(13, 239, 247, 0.6);
+}
+
+nav .menu-icon {
+  display: block;
+  cursor: pointer;
+  font-size: 2.5rem;
+  color: var(--text-color);
+}
+
+nav ul.mobile-menu {
+  display: none;
+  gap: 2rem;
+  justify-content: center;
+}
+
+nav ul.mobile-menu.active {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  nav ul.mobile-menu.active {
+    display: flex;
+  }
+
+  nav .menu-icon {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .collaborator-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .collaborator-card {
+    padding: 1rem;
+  }
+
+  nav a {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Panel de Administración Completo</h1>
+    <nav>
+      <!-- Icono del menú hamburguesa para pantallas pequeñas -->
+      <div class="menu-icon">&#9776;</div>
+      <ul class="mobile-menu">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="estadisticas.html">Estadísticas</a></li>
+        <li><a href="registrocurador.html">Crear curador</a></li>
+        <li><a href="ajustecolaboradores.html">Colaboradores</a></li>
+        <li><a href="#">Configuración</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="collaborator-container" id="collaborator-container"></div>
+
+  <script>
+    // Firebase Configuración
+    const firebaseConfig = {
+        apiKey: "AIzaSyB6QY7k3j0PRoWMxSNVk-2nI7sTqReGvlc",
+    authDomain: "scortsprincess.firebaseapp.com",
+    projectId: "scortsprincess",
+    storageBucket: "scortsprincess.appspot.com",
+    messagingSenderId: "599517218900",
+    appId: "1:599517218900:web:c51b2ec00e8c7b1fcd45c1",
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Función para obtener y mostrar los colaboradores (usuarios con rol 'collaborators')
+    async function fetchCollaborators() {
+      const collaboratorContainer = document.getElementById("collaborator-container");
+      collaboratorContainer.innerHTML = ""; // Limpiar contenido previo
+
+      const querySnapshot = await db.collection("users").where("role", "==", "distributor").get();
+      querySnapshot.forEach((doc) => {
+        const user = doc.data();
+
+        // Crear una tarjeta para cada colaborador
+        const card = document.createElement("div");
+        card.className = "collaborator-card";
+
+        card.innerHTML = `
+          <h3>${user.name}</h3>
+          <label for="percentage-${doc.id}">Porcentaje de comisión:</label>
+          <input type="number" id="percentage-${doc.id}" value="${user.commission || 0}" />
+
+          <label for="approval-${doc.id}">Requiere aprobación al subir productos:</label>
+          <select id="approval-${doc.id}">
+            <option value="true" ${user.requiresApproval ? "selected" : ""}>Sí</option>
+            <option value="false" ${!user.requiresApproval ? "selected" : ""}>No</option>
+          </select>
+
+          <button onclick="updateCollaborator('${doc.id}')">Guardar cambios</button>
+        `;
+
+        collaboratorContainer.appendChild(card);
+      });
+    }
+
+    // Función para actualizar un colaborador
+    async function updateCollaborator(userId) {
+      const percentageInput = document.getElementById(`percentage-${userId}`);
+      const approvalSelect = document.getElementById(`approval-${userId}`);
+
+      const newCommission = parseFloat(percentageInput.value);
+      const newRequiresApproval = approvalSelect.value === "true";
+
+      if (isNaN(newCommission) || newCommission < 0 || newCommission > 100) {
+        alert("Por favor, ingresa un porcentaje válido (0-100).");
+        return;
+      }
+
+      await db.collection("users").doc(userId).update({
+        commission: newCommission,
+        requiresApproval: newRequiresApproval,
+      });
+
+      alert("Colaborador actualizado correctamente.");
+      fetchCollaborators(); // Recargar la lista
+    }
+
+    // Cargar los colaboradores al inicio
+    fetchCollaborators();
+  </script>
+ <!-- Script para el funcionamiento del menú hamburguesa -->
+ <script>
+  // Activar el menú desplegable al hacer clic en el icono de menú hamburguesa
+  document.querySelector('.menu-icon').addEventListener('click', function() {
+    document.querySelector('.mobile-menu').classList.toggle('active');
+  });
+</script>
+    
+</body>
+</html>
